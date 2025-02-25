@@ -83,6 +83,8 @@ public class TransactionServiceTest {
         Transaction savedTransaction = transactionService.save(transactionOverLimit);
         Assertions.assertNotNull(savedTransaction);
         Assertions.assertTrue(savedTransaction.isLimitExceeded());
+        Assertions.assertEquals("RUB", savedTransaction.getCurrencyShortname());
+        Assertions.assertEquals(new BigDecimal("10000.00"), savedTransaction.getSum());
     }
 
     @Test
@@ -123,7 +125,12 @@ public class TransactionServiceTest {
 
         Transaction transactionUnderNewLimit = transactionService.save(transactionOverLimit);
         Assertions.assertTrue(transactionOverOldLimit.isLimitExceeded());
+        Assertions.assertEquals("RUB", transactionOverOldLimit.getCurrencyShortname());
+        Assertions.assertEquals(new BigDecimal("10000.00"), transactionOverOldLimit.getSum());
+
         Assertions.assertFalse(transactionUnderNewLimit.isLimitExceeded());
+        Assertions.assertEquals("RUB", transactionUnderNewLimit.getCurrencyShortname());
+        Assertions.assertEquals(new BigDecimal("10000.00"), transactionUnderNewLimit.getSum());
 
         TransactionDTO transactionOverNewLimitDTO = new TransactionDTO();
         transactionOverNewLimitDTO.setAccountFrom("0123456789");

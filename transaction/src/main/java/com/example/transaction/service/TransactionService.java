@@ -37,23 +37,21 @@ public class TransactionService {
 
         Transaction transaction = transactionDTO.convertToTransaction();
 
-        BigDecimal initialSum = transaction.getSum();
-        String initialCurrency = transaction.getCurrencyShortname();
-
         String accountFrom = transaction.getAccountFrom();
-        BigDecimal rate;
-
         String currency = transaction.getCurrencyShortname();
+
         if (currency == null) {
             logger.error("Не указана валюта транзакции с id: {}", transaction.getId());
             throw new NoSuchElementException("Не указана валюта транзакции с id: " + transaction.getId());
 
         }
 
+        BigDecimal transactionSumInUsd;
+
         if(!currency.equalsIgnoreCase("USD")){
-            BigDecimal transactionSumInUsd = exchangeRateService.convertCurrentCurrencyInUsd(initialSum, currency);
-            transaction.setSum(transactionSumInUsd);
-            transaction.setCurrencyShortname("USD");
+            transactionSumInUsd = exchangeRateService.convertCurrentCurrencyInUsd(transaction.getSum(), currency);
+        }else {
+            transactionSumInUsd = transaction.getSum();
         }
 
         var limits = limitService.getLimitsByAccountNumber(accountFrom);
@@ -63,7 +61,7 @@ public class TransactionService {
         Limit limit;
 
         if(limits.isEmpty() || !limits.containsKey(transactionCategory)){
-            limit = new Limit(accountFrom, transactionCategory, new BigDecimal("1000.00"), initialCurrency);
+            limit = new Limit(accountFrom, transactionCategory, new BigDecimal("1000.00"), currency);
             limitService.createLimit(new LimitDTO(limit));
             limits.put(transactionCategory, limit);
             logger.info("Создан лимит для аккаунта: {} в категории {}", accountFrom, transactionCategory);
@@ -75,9 +73,9 @@ public class TransactionService {
         BigDecimal limitOfThisAccount = Optional.ofNullable(limit.getLimitSum())
                 .orElseThrow(() -> new NoSuchElementException("Лимит суммы для аккаунта " + accountFrom + " отсутствует"));
 
-        transaction.setLimitExceeded(transaction.getSum().compareTo(limitOfThisAccount) > 0);
+        transaction.setLimitExceeded(transactionSumInUsd.compareTo(limitOfThisAccount) > 0);
 
-        logger.info("Транзакция для аккаунта: {} на сумму: {} {} успешно сохранена.", transaction.getAccountFrom(), initialSum, initialCurrency);
+        logger.info("Транзакция для аккаунта: {} на сумму: {} {} успешно сохранена.", transaction.getAccountFrom(), transaction.getSum(), transaction.getCurrencyShortname());
 
         return transactionRepository.save(transaction);
     }
