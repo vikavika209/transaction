@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -57,7 +58,7 @@ public class InternalControllerITest {
         TransactionDTO request = new TransactionDTO("0123456789", "9876543210", "RUB", new BigDecimal("1000.00"), "product");
         Transaction response = request.convertToTransaction();
 
-        when(transactionService.save(any(TransactionDTO.class))).thenReturn(response);
+        when(transactionService.save(any(TransactionDTO.class))).thenReturn(CompletableFuture.completedFuture(response));
         when(exchangeRateService.convertCurrentCurrencyInUsd(any(BigDecimal.class), any(String.class)))
                 .thenAnswer(invocation -> {
                     BigDecimal sum = invocation.getArgument(0);

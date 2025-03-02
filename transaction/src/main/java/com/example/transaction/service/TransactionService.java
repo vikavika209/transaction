@@ -9,6 +9,7 @@ import com.example.transaction.repository.TransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 
 @Service
@@ -33,7 +35,10 @@ public class TransactionService {
         this.exchangeRateService = exchangeRateService;
     }
 
-    public Transaction save(TransactionDTO transactionDTO) {
+    @Async
+    public CompletableFuture<Transaction> save(TransactionDTO transactionDTO) {
+
+        return CompletableFuture.supplyAsync(() -> {
 
         Transaction transaction = transactionDTO.convertToTransaction();
 
@@ -78,6 +83,7 @@ public class TransactionService {
         logger.info("Транзакция для аккаунта: {} на сумму: {} {} успешно сохранена.", transaction.getAccountFrom(), transaction.getSum(), transaction.getCurrencyShortname());
 
         return transactionRepository.save(transaction);
+        });
     }
 
     public List<TransactionLimitDTO> getTransactionsOverTheLimit(String accountNumber) {

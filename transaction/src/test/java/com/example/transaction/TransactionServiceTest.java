@@ -80,7 +80,7 @@ public class TransactionServiceTest {
         when(limitService.getLimitsByAccountNumber("0123456789")).thenReturn(map);
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Transaction savedTransaction = transactionService.save(transactionOverLimit);
+        Transaction savedTransaction = transactionService.save(transactionOverLimit).join();
         Assertions.assertNotNull(savedTransaction);
         Assertions.assertTrue(savedTransaction.isLimitExceeded());
         Assertions.assertEquals("RUB", savedTransaction.getCurrencyShortname());
@@ -98,7 +98,7 @@ public class TransactionServiceTest {
         when(limitService.getLimitsByAccountNumber("0123456789")).thenReturn(map);
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Transaction savedTransaction = transactionService.save(transactionUnderLimit);
+        Transaction savedTransaction = transactionService.save(transactionUnderLimit).join();
         Assertions.assertNotNull(savedTransaction);
         Assertions.assertFalse(savedTransaction.isLimitExceeded());
     }
@@ -113,7 +113,7 @@ public class TransactionServiceTest {
         when(limitService.getLimitsByAccountNumber("0123456789")).thenReturn(map);
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Transaction transactionOverOldLimit = transactionService.save(transactionOverLimit);
+        Transaction transactionOverOldLimit = transactionService.save(transactionOverLimit).join();
         Assertions.assertTrue(transactionOverOldLimit.isLimitExceeded());
 
         Limit newLimit = new Limit();
@@ -123,7 +123,7 @@ public class TransactionServiceTest {
 
         map.put("service", newLimit);
 
-        Transaction transactionUnderNewLimit = transactionService.save(transactionOverLimit);
+        Transaction transactionUnderNewLimit = transactionService.save(transactionOverLimit).join();
         Assertions.assertTrue(transactionOverOldLimit.isLimitExceeded());
         Assertions.assertEquals("RUB", transactionOverOldLimit.getCurrencyShortname());
         Assertions.assertEquals(new BigDecimal("10000.00"), transactionOverOldLimit.getSum());
@@ -138,7 +138,7 @@ public class TransactionServiceTest {
         transactionOverNewLimitDTO.setSum(new BigDecimal("25000.00"));
         transactionOverNewLimitDTO.setExpenseCategory("service");
 
-        Transaction transactionOverNewLimit = transactionService.save(transactionOverNewLimitDTO);
+        Transaction transactionOverNewLimit = transactionService.save(transactionOverNewLimitDTO).join();
         Assertions.assertTrue(transactionOverNewLimit.isLimitExceeded());
     }
 }

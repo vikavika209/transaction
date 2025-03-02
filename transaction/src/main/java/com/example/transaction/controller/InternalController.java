@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.CompletableFuture;
+
 @RestController
 @RequestMapping("/transactions")
 public class InternalController {
@@ -37,7 +39,7 @@ public class InternalController {
     })
     @PostMapping
     public ResponseEntity<Transaction> saveTransaction(@RequestBody TransactionDTO request) {
-        Transaction transaction = transactionService.save(request);
+        Transaction transaction = transactionService.save(request).join();
         return ResponseEntity.ok(transaction);
     }
 
