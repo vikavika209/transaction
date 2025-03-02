@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
-
+import java.util.Map;
 
 @Component
 public class ExchangeRateApiClient {
@@ -15,17 +15,19 @@ public class ExchangeRateApiClient {
     private static final Logger logger = LoggerFactory.getLogger(ExchangeRateApiClient.class);
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-
-    private static final String API_KEY = "ea2968816b464fd786e10b7e47d85911";
-    private static final String URL = "https://openexchangerates.org/api/latest.json?app_id=" + API_KEY;
+    private final SimpleYamlParser simpleYamlParser = new SimpleYamlParser();
 
     public ExchangeRateApiClient() {
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
     }
 
+    private final String API_KEY = simpleYamlParser.getAPI_KEY();
+    private final String URL = simpleYamlParser.getURL() + API_KEY;
+
     public BigDecimal getExchangeRate(String currency) {
         logger.info("Запрос курса валют относительно USD для: {}", currency);
+        logger.info(URL);
 
         try {
             String response = restTemplate.getForObject(URL, String.class);
