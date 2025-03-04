@@ -24,4 +24,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     AND t.accountFrom = :accountFrom
 """)
     List<TransactionLimitDTO> findExceededTransactions(@Param("accountFrom") String accountFrom);
+    Transaction findTopByAccountFromOrderByTransactionTimeDesc(String accountFrom);
 }

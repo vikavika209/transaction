@@ -50,17 +50,13 @@ public class ClientControllerTest {
 
     @BeforeEach
     void setUp() {
-        exchangeRate = new ExchangeRate();
-        exchangeRate.setCurrency("RUB");
-        exchangeRate.setRate(BigDecimal.valueOf(100.00));
-
         Transaction transaction = new Transaction();
         transaction.setAccountFrom("0123456789");
         transaction.setAccountTo("9876543210");
         transaction.setSum(new BigDecimal("500.00"));
         transaction.setCurrencyShortname("RUB");
         transaction.setExpenseCategory("product");
-        transactionService.save(new TransactionDTO(transaction));
+        transactionService.processTransaction(new TransactionDTO(transaction));
     }
 
     @Test
@@ -84,18 +80,28 @@ public class ClientControllerTest {
                         .content(objectMapper.writeValueAsString(limitDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.account").value("0123456789"))
-                .andExpect(jsonPath("$.limitSum").value(5000))
-                .andExpect(jsonPath("$.limitCurrencyShortName").value("RUB"));
+                .andExpect(jsonPath("$.limitCurrencyShortName").value("USD"));
     }
 
     @Test
     @Transactional
     void getLimits() throws Exception {
-        String accountNumber = "0123456789";
+        String accountNumber = "9876543210";
 
         mockMvc.perform(get("/api/client/limits/{accountNumber}", accountNumber)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
+                .andExpect(jsonPath("$.size()").value(2))
+                .andExpect(jsonPath("$.product.account").value("9876543210"))
+                .andExpect(jsonPath("$.product.limitSum").value(1000));
+
+        limitService.createLimit(new LimitDTO(accountNumber, "product", new BigDecimal("5000.00"), "RUB"));
+
+        mockMvc.perform(get("/api/client/limits/{accountNumber}", accountNumber)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(2))
+                .andExpect(jsonPath("$.product.account").value("9876543210"))
+                .andExpect(jsonPath("$.product.limitCurrencyShortName").value("USD"));
     }
 }

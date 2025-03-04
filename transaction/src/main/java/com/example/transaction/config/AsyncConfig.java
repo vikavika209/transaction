@@ -10,13 +10,25 @@ import java.util.concurrent.Executor;
 @Configuration
 @EnableAsync
 public class AsyncConfig {
-    @Bean
-    public Executor taskExecutor() {
+
+    @Bean(name = "rubExecutor")
+    public Executor rubExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(20);
-        executor.setThreadNamePrefix("Transaction-");
+        executor.setMaxPoolSize(5);
+        executor.setQueueCapacity(10);
+        executor.setThreadNamePrefix("RUB-Thread-");
+        executor.initialize();
+        return executor;
+    }
+
+    @Bean(name = "kztExecutor")
+    public Executor kztExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(5);
+        executor.setQueueCapacity(10);
+        executor.setThreadNamePrefix("KZT-Thread-");
         executor.initialize();
         return executor;
     }

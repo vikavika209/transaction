@@ -82,4 +82,9 @@ public class LimitDTO {
         this.limitSum = limit.getLimitSum();
         this.limitCurrencyShortName = limit.getLimitCurrencyShortName();
     }
+
+    public LimitDTO(String account, String limitCategory) {
+        this.account = account;
+        this.limitCategory = limitCategory;
+    }
 }

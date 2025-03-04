@@ -27,48 +27,65 @@ public class LimitService {
 
     public Limit createLimit(LimitDTO limitDTO) {
 
-        Limit limit = limitDTO.convertToLimit();
+        logger.info("Метод createLimit начал работу");
 
-        Optional<Limit> optionalLimit = limitRepository.findTopByAccountAndLimitCategory(limitDTO.getAccount(), limitDTO.getLimitCategory());
-        if (optionalLimit.isPresent()) {
-            limit.setLimitDatetime(OffsetDateTime.now());
-            limit.setLimitSum(limit.getLimitSum());
-            return limitRepository.save(limit);
-        }
+        Optional <Limit> optionalLimit = limitRepository.findTopByAccountAndLimitCategoryOrderByLimitDatetimeDesc(limitDTO.getAccount(), limitDTO.getLimitCategory());
+        Limit limit = optionalLimit.orElse(new Limit());
 
-        if (limit.getAccount() == null) {
-            logger.error("Не указан аккаунт для установки лимита");
-            throw new IllegalArgumentException("Не указан аккаунт для установки лимита");
-        }
+        limit.setAccount(limitDTO.getAccount());
+        limit.setLimitCategory(limitDTO.getLimitCategory());
+        limit.setLimitDatetime(OffsetDateTime.now());
 
-        if (limit.getLimitSum() == null) {
-            limit.setLimitCurrencyShortName("USD");
+        if (limitDTO.getLimitCurrencyShortName() == null){
             limit.setLimitSum(new BigDecimal("1000.00"));
-        }
-
-        if (!limit.getLimitCurrencyShortName().equalsIgnoreCase("USD")){
-
-            BigDecimal limitSum = limit.getLimitSum();
-            String limitCurrency = limit.getLimitCurrencyShortName();
-            BigDecimal limitSumInUsd = exchangeRateService.convertCurrentCurrencyInUsd(limitSum, limitCurrency);
-
-            limit.setLimitSum(limitSumInUsd);
             limit.setLimitCurrencyShortName("USD");
+        }else {
+            if (limitDTO.getLimitCurrencyShortName().equalsIgnoreCase("RUB") || limitDTO.getLimitCurrencyShortName().equalsIgnoreCase("KZT")) {
+
+                BigDecimal limitSum = limitDTO.getLimitSum();
+                String limitCurrency = limitDTO.getLimitCurrencyShortName();
+                BigDecimal limitSumInUsd = exchangeRateService.convertCurrentCurrencyInUsd(limitSum, limitCurrency);
+
+                limit.setLimitSum(limitSumInUsd);
+                limit.setLimitCurrencyShortName("USD");
+            }
+
+            else if (limitDTO.getLimitCurrencyShortName().equalsIgnoreCase("USD")) {
+                limit.setLimitSum(limitDTO.getLimitSum());
+            } else {
+                logger.error("Неизвестная валюта: {}", limitDTO.getLimitCurrencyShortName());
+                throw new RuntimeException("Неизвестная валюта");
+            }
         }
 
         logger.info("Лимит для аккаунта: {} на категорию '{}' успешно установлен", limit.getLimitCategory(), limit.getAccount());
         return limitRepository.save(limit);
     }
 
-    public Map<String, Limit> getLimitsByAccountNumber(String accountNumber) {
+    public Limit getLimitsByAccountNumberAndCategory(String accountNumber, String category) {
+
+        Optional<Limit> optionalLimit = limitRepository.findTopByAccountAndLimitCategoryOrderByLimitDatetimeDesc(accountNumber, category);
+        Limit limit = optionalLimit.orElse(null);
+        logger.info("Лимит в категории:{} для аккаунта {} получен.", category, accountNumber);
+        return limit;
+    }
+
+    public Map<String, Limit> getLimitsByAccountNumber(String accountNumber){
+        Limit productLimit = getLimitsByAccountNumberAndCategory(accountNumber, "product");
+        Limit serviceLimit = getLimitsByAccountNumberAndCategory(accountNumber, "service");
 
         Map<String, Limit> limitMap = new HashMap<>();
 
-        limitRepository.findTopByAccountAndLimitCategoryOrderByLimitDatetimeDesc(accountNumber, "service")
-                .ifPresent(limit -> limitMap.put("service", limit));
+        if (productLimit == null) {
+            productLimit = createLimit(new LimitDTO(accountNumber, "product"));
+        }
 
-        limitRepository.findTopByAccountAndLimitCategoryOrderByLimitDatetimeDesc(accountNumber, "product")
-                .ifPresent(limit -> limitMap.put("product", limit));
+        if (serviceLimit == null) {
+            serviceLimit = createLimit(new LimitDTO(accountNumber, "service"));
+        }
+
+        limitMap.put("product", productLimit);
+        limitMap.put("service", serviceLimit);
 
         logger.info("Лимиты для аккаунта {} получены.", accountNumber);
         return limitMap;

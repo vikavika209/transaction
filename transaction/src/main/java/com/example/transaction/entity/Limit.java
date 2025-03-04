@@ -1,5 +1,6 @@
 package com.example.transaction.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,11 +37,12 @@ public class Limit {
     private String limitCurrencyShortName;
 
     @OneToMany(mappedBy = "limit", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     List<Transaction> transactions;
 
     //Сеттеры
     public void setLimitSum (BigDecimal limitSum) {
-        this.limitSum = limitSum.setScale(2, RoundingMode.HALF_UP);
+            this.limitSum = limitSum.setScale(2, RoundingMode.HALF_UP);
     }
 
     public void setId(Integer id) {

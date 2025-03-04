@@ -39,7 +39,7 @@ public class InternalController {
     })
     @PostMapping
     public ResponseEntity<Transaction> saveTransaction(@RequestBody TransactionDTO request) {
-        Transaction transaction = transactionService.save(request).join();
+        Transaction transaction = transactionService.processTransaction(request);
         return ResponseEntity.ok(transaction);
     }
 

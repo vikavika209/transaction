@@ -1,10 +1,6 @@
 package com.example.transaction.dto;
 
 import com.example.transaction.entity.Transaction;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 
 public class TransactionDTO {

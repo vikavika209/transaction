@@ -1,5 +1,6 @@
 package com.example.transaction;
 
+import com.example.transaction.dto.LimitDTO;
 import com.example.transaction.dto.TransactionDTO;
 import com.example.transaction.entity.ExchangeRate;
 import com.example.transaction.entity.Limit;
@@ -61,12 +62,11 @@ public class TransactionServiceTest {
         limit.setAccount("0123456789");
         limit.setLimitCategory("service");
         limit.setLimitSum(new BigDecimal("50.00"));
+        limit.setLimitCurrencyShortName("USD");
 
         exchangeRate = new ExchangeRate();
         exchangeRate.setCurrency("RUB");
         exchangeRate.setRate(BigDecimal.valueOf(100.00));
-
-        map.put("service", limit);
     }
 
     @Test
@@ -77,10 +77,10 @@ public class TransactionServiceTest {
                     BigDecimal sum = invocation.getArgument(0);
                     return sum.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
                 });
-        when(limitService.getLimitsByAccountNumber("0123456789")).thenReturn(map);
+        when(limitService.getLimitsByAccountNumberAndCategory("0123456789", "service")).thenReturn(limit);
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Transaction savedTransaction = transactionService.save(transactionOverLimit).join();
+        Transaction savedTransaction = transactionService.processTransaction(transactionOverLimit);
         Assertions.assertNotNull(savedTransaction);
         Assertions.assertTrue(savedTransaction.isLimitExceeded());
         Assertions.assertEquals("RUB", savedTransaction.getCurrencyShortname());
@@ -95,10 +95,10 @@ public class TransactionServiceTest {
                     BigDecimal sum = invocation.getArgument(0);
                     return sum.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
                 });
-        when(limitService.getLimitsByAccountNumber("0123456789")).thenReturn(map);
+        when(limitService.getLimitsByAccountNumberAndCategory("0123456789", "service")).thenReturn(limit);
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Transaction savedTransaction = transactionService.save(transactionUnderLimit).join();
+        Transaction savedTransaction = transactionService.processTransaction(transactionUnderLimit);
         Assertions.assertNotNull(savedTransaction);
         Assertions.assertFalse(savedTransaction.isLimitExceeded());
     }
@@ -110,20 +110,20 @@ public class TransactionServiceTest {
                     BigDecimal sum = invocation.getArgument(0);
                     return sum.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
                 });
-        when(limitService.getLimitsByAccountNumber("0123456789")).thenReturn(map);
+        when(limitService.getLimitsByAccountNumberAndCategory("0123456789", "service")).thenReturn(limit);
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Transaction transactionOverOldLimit = transactionService.save(transactionOverLimit).join();
+        Transaction transactionOverOldLimit = transactionService.processTransaction(transactionOverLimit);
         Assertions.assertTrue(transactionOverOldLimit.isLimitExceeded());
 
-        Limit newLimit = new Limit();
-        newLimit.setAccount("0123456789");
-        newLimit.setLimitCategory("service");
-        newLimit.setLimitSum(new BigDecimal("200.00"));
+        Limit newLimit = new Limit("0123456789", "service", new BigDecimal("200.00"), "USD");
+        when(limitService.createLimit(any(LimitDTO.class))).thenReturn(newLimit);
 
-        map.put("service", newLimit);
+        limitService.createLimit(new LimitDTO("0123456789", "service", new BigDecimal("200.00"), "USD"));
 
-        Transaction transactionUnderNewLimit = transactionService.save(transactionOverLimit).join();
+        when(limitService.getLimitsByAccountNumberAndCategory("0123456789", "service")).thenReturn(newLimit);
+
+        Transaction transactionUnderNewLimit = transactionService.processTransaction(transactionOverLimit);
         Assertions.assertTrue(transactionOverOldLimit.isLimitExceeded());
         Assertions.assertEquals("RUB", transactionOverOldLimit.getCurrencyShortname());
         Assertions.assertEquals(new BigDecimal("10000.00"), transactionOverOldLimit.getSum());
@@ -138,7 +138,7 @@ public class TransactionServiceTest {
         transactionOverNewLimitDTO.setSum(new BigDecimal("25000.00"));
         transactionOverNewLimitDTO.setExpenseCategory("service");
 
-        Transaction transactionOverNewLimit = transactionService.save(transactionOverNewLimitDTO).join();
+        Transaction transactionOverNewLimit = transactionService.processTransaction(transactionOverNewLimitDTO);
         Assertions.assertTrue(transactionOverNewLimit.isLimitExceeded());
     }
 }

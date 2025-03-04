@@ -1,5 +1,6 @@
 package com.example.transaction.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import jakarta.persistence.Id;
@@ -46,6 +47,7 @@ public class Transaction {
             @JoinColumn(name = "account_from", referencedColumnName = "account"),
             @JoinColumn(name = "expense_category", referencedColumnName = "limit_category")
     })
+    @JsonBackReference
     private Limit limit;
 
     //Сеттеры
