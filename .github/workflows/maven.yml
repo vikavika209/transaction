@@ -18,7 +18,17 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+          
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 17
