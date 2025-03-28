@@ -6,6 +6,7 @@ import com.example.transaction.dto.TransactionLimitDTO;
 import com.example.transaction.entity.Limit;
 import com.example.transaction.entity.Transaction;
 import com.example.transaction.repository.TransactionRepository;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +24,14 @@ import java.util.concurrent.CompletableFuture;
 public class TransactionService {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
+    private final ModelMapper modelMapper;
     TransactionRepository transactionRepository;
     ExchangeRateService exchangeRateService;
     LimitService limitService;
 
     @Autowired
-    public TransactionService(TransactionRepository transactionRepository, LimitService limitService, ExchangeRateService exchangeRateService) {
+    public TransactionService(ModelMapper modelMapper, TransactionRepository transactionRepository, LimitService limitService, ExchangeRateService exchangeRateService) {
+        this.modelMapper = modelMapper;
         this.transactionRepository = transactionRepository;
         this.limitService = limitService;
         this.exchangeRateService = exchangeRateService;
@@ -36,46 +39,29 @@ public class TransactionService {
 
     private Transaction save(TransactionDTO transactionDTO) {
 
-        Transaction transaction = transactionDTO.convertToTransaction();
+        //Мап ДТО в транзакцию
+        Transaction transaction = modelMapper.map(transactionDTO, Transaction.class);
 
+        //Объявление переменных
         String accountFrom = transaction.getAccountFrom();
-        String currency = transaction.getCurrencyShortname();
         String transactionCategory = transaction.getExpenseCategory();
 
-        if (currency == null) {
-            logger.error("Не указана валюта транзакции с id: {}", transaction.getId());
-            throw new NoSuchElementException("Не указана валюта транзакции с id: " + transaction.getId());
+        //Конвертация суммы транзакции в USD
+        BigDecimal transactionSumInUsd = convertTransactionSumInUsd(transaction);
 
-        }
+        //Получение лимита
+        Limit limit = findOrCreateLimitForAccountByCategory(accountFrom, transactionCategory);
+        transaction.setLimit(limit);
+        BigDecimal limitOfThisAccount = limit.getLimitSum();
+        logger.info("Лимит для аккаунта: {} равен {} {}.", accountFrom, limitOfThisAccount, limit.getLimitCurrencyShortName());
 
-        BigDecimal transactionSumInUsd;
-
-        if(!currency.equalsIgnoreCase("USD")){
-            transactionSumInUsd = exchangeRateService.convertCurrentCurrencyInUsd(transaction.getSum(), currency);
-        }else {
-            transactionSumInUsd = transaction.getSum();
-        }
-
-        Limit limit = limitService.getLimitsByAccountNumberAndCategory(accountFrom, transactionCategory);
-
-        if(limit == null){
-            limit = limitService.createLimit(new LimitDTO(accountFrom, transactionCategory));
-            logger.info("Создан лимит: {} для аккаунта: {} в категории {}", limit.getLimitSum(), accountFrom, transactionCategory);
-        }else {
-
-            transaction.setLimit(limit);
-            logger.info("Лимит для аккаунта: {} равен {} {}.", accountFrom, limit.getLimitSum(), limit.getLimitCurrencyShortName());
-        }
-
-        BigDecimal limitOfThisAccount = Optional.ofNullable(limit.getLimitSum())
-                .orElseThrow(() -> new NoSuchElementException("Лимит суммы для аккаунта " + accountFrom + " отсутствует"));
-
+        //Установка флага превышения лимита
         transaction.setLimitExceeded(transactionSumInUsd.compareTo(limitOfThisAccount) > 0);
         logger.info("transactionSumInUsd = {}; limitOfThisAccount = {}", transactionSumInUsd, limitOfThisAccount);
         logger.info("transaction.isLimitExceeded() {}", transaction.isLimitExceeded());
 
+        //Сохранение транзакции
         logger.info("Транзакция для аккаунта: {} на сумму: {} {} успешно сохранена.", transaction.getAccountFrom(), transaction.getSum(), transaction.getCurrencyShortname());
-
         return transactionRepository.save(transaction);
     }
 
@@ -110,5 +96,31 @@ public class TransactionService {
             logger.error("Невалидная валюта транзакции с аккаунта: {}", transactionDTO.getAccountFrom());
             throw new RuntimeException("Невалидная валюта транзакции.");
         }
+    }
+
+    private Limit findOrCreateLimitForAccountByCategory(String account, String category) {
+        Limit limit = limitService.getLimitsByAccountNumberAndCategory(account, category);
+
+        if (limit == null) {
+            limit = limitService.createLimit(new LimitDTO(account, category));
+            logger.info("Создан лимит: {} для аккаунта: {} в категории {}", limit.getLimitSum(), account, category);
+        }
+
+        return limit;
+    }
+
+    private BigDecimal convertTransactionSumInUsd(Transaction transaction) {
+        if (transaction.getCurrencyShortname() == null) {
+            logger.error("Не указана валюта транзакции с id: {}", transaction.getId());
+            throw new NoSuchElementException("Не указана валюта транзакции с id: " + transaction.getId());
+        }
+
+        BigDecimal transactionSumInUsd;
+        if(!transaction.getCurrencyShortname().equalsIgnoreCase("USD")){
+            transactionSumInUsd = exchangeRateService.convertCurrentCurrencyInUsd(transaction.getSum(), transaction.getCurrencyShortname());
+        }else {
+            transactionSumInUsd = transaction.getSum();
+        }
+        return transactionSumInUsd;
     }
 }

@@ -1,4 +1,4 @@
-package com.example.transaction;
+package com.example.transaction.controller;
 
 import com.example.transaction.dto.TransactionDTO;
 import com.example.transaction.entity.ExchangeRate;
@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,7 +20,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -46,6 +46,9 @@ public class InternalControllerITest {
     @MockBean
     ExchangeRateService exchangeRateService;
 
+    @MockBean
+    ModelMapper modelMapper;
+
     @BeforeEach
     void setUp() {
         exchangeRate = new ExchangeRate();
@@ -56,7 +59,7 @@ public class InternalControllerITest {
     @Test
     void testSaveTransaction() throws Exception {
         TransactionDTO request = new TransactionDTO("0123456789", "9876543210", "RUB", new BigDecimal("1000.00"), "product");
-        Transaction response = request.convertToTransaction();
+        Transaction response = modelMapper.map(request, Transaction.class);
 
         when(transactionService.processTransaction(any(TransactionDTO.class))).thenReturn(response);
         when(exchangeRateService.convertCurrentCurrencyInUsd(any(BigDecimal.class), any(String.class)))

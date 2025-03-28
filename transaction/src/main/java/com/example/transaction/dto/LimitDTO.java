@@ -2,10 +2,14 @@ package com.example.transaction.dto;
 
 import com.example.transaction.entity.Limit;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
+@Getter
+@Setter
 public class LimitDTO {
     @JsonProperty("account")
     private String account;
@@ -18,52 +22,6 @@ public class LimitDTO {
 
     @JsonProperty("limitCurrencyShortName")
     private String limitCurrencyShortName;
-
-    public Limit convertToLimit() {
-        Limit limit = new Limit();
-        limit.setAccount(account);
-        limit.setLimitCategory(limitCategory);
-        limit.setLimitSum(limitSum);
-        limit.setLimitCurrencyShortName(limitCurrencyShortName);
-        limit.setLimitDatetime(OffsetDateTime.now());
-        return limit;
-    }
-
-    //Геттеры
-
-    public String getAccount() {
-        return account;
-    }
-
-    public String getLimitCategory() {
-        return limitCategory;
-    }
-
-    public BigDecimal getLimitSum() {
-        return limitSum;
-    }
-
-    public String getLimitCurrencyShortName() {
-        return limitCurrencyShortName;
-    }
-
-    //Сеттеры
-
-    public void setAccount(String account) {
-        this.account = account;
-    }
-
-    public void setLimitCategory(String limitCategory) {
-        this.limitCategory = limitCategory;
-    }
-
-    public void setLimitSum(BigDecimal limitSum) {
-        this.limitSum = limitSum;
-    }
-
-    public void setLimitCurrencyShortName(String limitCurrencyShortName) {
-        this.limitCurrencyShortName = limitCurrencyShortName;
-    }
 
     //Конструктор
 

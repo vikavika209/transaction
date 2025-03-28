@@ -1,4 +1,4 @@
-package com.example.transaction;
+package com.example.transaction.controller;
 
 import com.example.transaction.component.ExchangeRateApiClient;
 import com.example.transaction.dto.LimitDTO;

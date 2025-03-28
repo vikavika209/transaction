@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
@@ -11,6 +13,8 @@ import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "transactions")
 public class Transaction {
 
@@ -49,77 +53,6 @@ public class Transaction {
     })
     @JsonBackReference
     private Limit limit;
-
-    //Сеттеры
-    public void setSum(BigDecimal sum) {
-        this.sum = sum.setScale(2, RoundingMode.HALF_UP);
-    }
-
-    public void setAccountFrom(@Pattern(regexp = "\\d{10}", message = "Аккаунт должен состоять из 10 цифр") String accountFrom) {
-        this.accountFrom = accountFrom;
-    }
-
-    public void setAccountTo(@Pattern(regexp = "\\d{10}", message = "Аккаунт должен состоять из 10 цифр") String accountTo) {
-        this.accountTo = accountTo;
-    }
-
-    public void setCurrencyShortname(String currencyShortname) {
-        this.currencyShortname = currencyShortname;
-    }
-
-    public void setExpenseCategory(String expenseCategory) {
-        this.expenseCategory = expenseCategory;
-    }
-
-    public void setTransactionTime(OffsetDateTime transactionTime) {
-        this.transactionTime = transactionTime;
-    }
-
-    public void setLimitExceeded(boolean limitExceeded) {
-        this.limitExceeded = limitExceeded;
-    }
-
-    public void setLimit(Limit limit) {
-        this.limit = limit;
-    }
-
-    //Геттеры
-
-    public BigDecimal getSum() {
-        return sum != null ? sum.setScale(2, RoundingMode.HALF_UP) : null;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public String getAccountFrom() {
-        return accountFrom;
-    }
-
-    public String getAccountTo() {
-        return accountTo;
-    }
-
-    public String getCurrencyShortname() {
-        return currencyShortname;
-    }
-
-    public String getExpenseCategory() {
-        return expenseCategory;
-    }
-
-    public OffsetDateTime getTransactionTime() {
-        return transactionTime;
-    }
-
-    public boolean isLimitExceeded() {
-        return limitExceeded;
-    }
-
-    public Limit getLimit() {
-        return limit;
-    }
 
     //Конструкторы
     public Transaction() {

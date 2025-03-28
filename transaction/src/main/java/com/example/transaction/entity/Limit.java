@@ -3,15 +3,16 @@ package com.example.transaction.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-
-
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.util.List;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "limits")
 public class Limit {
 
@@ -40,67 +41,7 @@ public class Limit {
     @JsonManagedReference
     List<Transaction> transactions;
 
-    //Сеттеры
-    public void setLimitSum (BigDecimal limitSum) {
-            this.limitSum = limitSum.setScale(2, RoundingMode.HALF_UP);
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public void setAccount (String account) {
-        this.account = account;
-    }
-
-    public void setLimitCategory(String limitCategory) {
-        this.limitCategory = limitCategory;
-    }
-
-    public void setLimitCurrencyShortName(String limitCurrencyShortname) {
-        this.limitCurrencyShortName = limitCurrencyShortname;
-    }
-
-    public void setTransactions(List<Transaction> transactions) {
-        this.transactions = transactions;
-    }
-
-    public void setLimitDatetime(OffsetDateTime limitDatetime) {
-        this.limitDatetime = limitDatetime;
-    }
-
-//Геттеры
-
-    public Integer getId() {
-        return id;
-    }
-
-    public String getAccount() {
-        return account;
-    }
-
-    public String getLimitCategory() {
-        return limitCategory;
-    }
-
-    public BigDecimal getLimitSum() {
-        return limitSum;
-    }
-
-    public OffsetDateTime getLimitDatetime() {
-        return limitDatetime;
-    }
-
-    public String getLimitCurrencyShortName() {
-        return limitCurrencyShortName;
-    }
-
-    public List<Transaction> getTransactions() {
-        return transactions;
-    }
-
     //Конструкторы
-
     public Limit() {
     }
 
