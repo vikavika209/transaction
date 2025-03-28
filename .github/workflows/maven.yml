@@ -27,9 +27,6 @@ jobs:
           POSTGRES_PASSWORD: test
         ports:
           - 5432:5432
-          
-    steps:
-    - uses: actions/checkout@v4
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
