@@ -34,7 +34,10 @@ jobs:
     - name: Build with Maven
       working-directory: transaction
       run: mvn -B package
-    
+
+    - name: List contents of transaction directory
+      run: ls -la ./transaction
+
     - name: Update dependency graph
       working-directory: ./transaction
       run: mvn com.github.ferstl:depgraph-maven-plugin:4.0.1:graph -DgraphFormat=json
