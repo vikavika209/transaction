@@ -11,16 +11,9 @@ import java.time.OffsetDateTime;
 @Getter
 @Setter
 public class LimitDTO {
-    @JsonProperty("account")
     private String account;
-
-    @JsonProperty("limitCategory")
     private String limitCategory;
-
-    @JsonProperty("limitSum")
     private BigDecimal limitSum;
-
-    @JsonProperty("limitCurrencyShortName")
     private String limitCurrencyShortName;
 
     //Конструктор

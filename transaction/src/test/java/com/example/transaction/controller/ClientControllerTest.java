@@ -1,11 +1,9 @@
 package com.example.transaction.controller;
 
-import com.example.transaction.component.ExchangeRateApiClient;
 import com.example.transaction.dto.LimitDTO;
 import com.example.transaction.dto.TransactionDTO;
 import com.example.transaction.entity.ExchangeRate;
 import com.example.transaction.entity.Transaction;
-import com.example.transaction.service.ExchangeRateService;
 import com.example.transaction.service.LimitService;
 import com.example.transaction.service.TransactionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,12 +42,6 @@ public class ClientControllerTest {
     @Autowired
     private TransactionService transactionService;
 
-    @Autowired
-    ExchangeRateService exchangeRateService;
-
-    @Autowired
-    ExchangeRateApiClient exchangeRateApiClient;
-
     @BeforeEach
     void setUp() {
         Transaction transaction = new Transaction();
@@ -69,7 +61,7 @@ public class ClientControllerTest {
         mockMvc.perform(get("/api/client/transactions/exceeded/{accountNumber}", accountNumber)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect((ResultMatcher) jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test
