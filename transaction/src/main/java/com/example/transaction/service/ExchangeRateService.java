@@ -36,11 +36,12 @@ public class ExchangeRateService {
     private void saveExchangeRate(String currency) {
         LocalDate today = LocalDate.now();
         BigDecimal rate = exchangeRateApiClient.getExchangeRate(currency);
+        logger.info("API вернул курс для {}: {}", currency, rate);
 
         if (rate == null) {
-            Optional<ExchangeRate> lastRate = exchangeRateRepository.findTopByCurrencyOrderByDateDesc(currency);
-            if (lastRate.isPresent()) {
-                rate = lastRate.get().getRate();
+            ExchangeRate lastRate = getExchangeRate(currency);
+            if (lastRate != null) {
+                rate = lastRate.getRate();
             } else {
                 logger.error("Нет данных о предыдущем курсе для " + currency + ".");
                 throw new RuntimeException("Нет данных о предыдущем курсе для " + currency);

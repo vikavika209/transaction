@@ -27,6 +27,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@SpringBootTest
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceTest {
     private TransactionDTO transactionOverLimitDto;
