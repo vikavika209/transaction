@@ -27,6 +27,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-docker-
 
+      - name: Build JAR with Maven
+        run: mvn clean package -DskipTests
+  
       - name: Build Docker images
         run: |
           docker compose -f ./transaction/docker-compose.yml build
