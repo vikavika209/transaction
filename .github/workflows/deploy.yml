@@ -28,7 +28,7 @@ jobs:
             ${{ runner.os }}-docker-
 
       - name: Build JAR with Maven
-        run: mvn clean package -DskipTests
+        run: mvn -f ./transaction/pom.xml clean package -DskipTests
   
       - name: Build Docker images
         run: |
