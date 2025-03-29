@@ -1,0 +1,43 @@
+name: Build and Deploy Transaction
+
+on:
+  push:
+    branches:
+      - master  # Триггер на пуш в ветку master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      EXCHANGE_API_KEY: ${{ secrets.EXCHANGE_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
+      - name: Build Docker images
+        run: |
+          docker-compose build
+
+      - name: Run Docker containers
+        run: |
+          docker-compose up -d
+        env:
+          EXCHANGE_API_KEY: ${{ secrets.EXCHANGE_API_KEY }}
+
+      - name: Verify containers are running
+        run: |
+          docker-compose ps
+
