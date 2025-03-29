@@ -15,7 +15,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
       show-sql: true
       properties:
         hibernate:
@@ -25,6 +25,10 @@ spring:
   exchange:
     rate:
       api:
-        url_for_API: https://openexchangerates.org/api/latest.json?app_id=
-        key: ea2968816b464fd786e10b7e47d85911
+        url: "https://openexchangerates.org/api/latest.json?app_id=${EXCHANGE_API_KEY}"
+
+  logging:
+    level:
+      org.springframework: DEBUG
+
 

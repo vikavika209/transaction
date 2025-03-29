@@ -13,7 +13,6 @@ import java.util.Map;
 public class SimpleYamlParser {
 
     private final Map<String, String> config = parseYaml();
-    private final String API_KEY = config.get("key");
     private final String URL = config.get("url_for_API");
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleYamlParser.class);
@@ -52,10 +51,6 @@ public class SimpleYamlParser {
     }
 
     public SimpleYamlParser() {
-    }
-
-    public String getAPI_KEY() {
-        return API_KEY;
     }
 
     public String getURL() {

@@ -14,3 +14,8 @@ spring:
   flyway:
     enabled: false
 
+  exchange:
+    rate:
+      api:
+        url: "https://openexchangerates.org/api/latest.json?app_id=ea2968816b464fd786e10b7e47d85911"
+
