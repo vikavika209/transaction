@@ -29,11 +29,11 @@ jobs:
 
       - name: Build Docker images
         run: |
-          docker-compose build
+          docker compose build
 
       - name: Run Docker containers
         run: |
-          docker-compose up -d
+          docker compose up -d
         env:
           EXCHANGE_API_KEY: ${{ secrets.EXCHANGE_API_KEY }}
 
