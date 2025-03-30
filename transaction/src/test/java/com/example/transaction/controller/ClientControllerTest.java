@@ -45,6 +45,7 @@ public class ClientControllerTest {
     @BeforeEach
     void setUp() {
         limitService.deleteAllLimits();
+        transactionService.deleteAllTransactions();
 
         Transaction transaction = new Transaction();
         transaction.setAccountFrom("0123456789");

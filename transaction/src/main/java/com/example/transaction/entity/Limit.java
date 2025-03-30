@@ -14,7 +14,10 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Table(name = "limits")
+@Table(
+        name = "limits",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"account", "limit_category", "limit_datetime", "limit_sum"})
+)
 public class Limit {
 
     @Id

@@ -125,4 +125,8 @@ public class TransactionService {
         }
         return transactionSumInUsd;
     }
+
+    public void deleteAllTransactions(){
+        transactionRepository.deleteAll();
+    }
 }
