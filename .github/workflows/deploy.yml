@@ -42,5 +42,5 @@ jobs:
 
       - name: Verify containers are running
         run: |
-          docker-compose ps
+          docker compose ps
 
