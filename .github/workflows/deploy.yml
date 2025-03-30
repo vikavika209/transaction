@@ -36,7 +36,7 @@ jobs:
 
       - name: Run Docker containers
         run: |
-          docker compose up -d
+          docker compose -f ./transaction/docker-compose.yml up -d
         env:
           EXCHANGE_API_KEY: ${{ secrets.EXCHANGE_API_KEY }}
 
