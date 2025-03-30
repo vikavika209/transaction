@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +26,12 @@ public class InternalController {
 
     Logger logger = LoggerFactory.getLogger(InternalController.class);
 
+    private final ModelMapper modelMapper;
     private final TransactionService transactionService;
 
     @Autowired
-    public InternalController(TransactionService transactionService) {
+    public InternalController(ModelMapper modelMapper, TransactionService transactionService) {
+        this.modelMapper = modelMapper;
         this.transactionService = transactionService;
     }
 
@@ -43,10 +46,15 @@ public class InternalController {
             @ApiResponse(responseCode = "500", description = "Ошибка на сервере")
     })
     @PostMapping
-    public ResponseEntity<Transaction> saveTransaction(@RequestBody TransactionDTO request) {
+    public CompletableFuture<ResponseEntity<TransactionDTO>> saveTransaction(@RequestBody TransactionDTO request) {
         logger.info("Получен запрос: accountFrom={}, currencyShortname={}", request.getAccountFrom(), request.getCurrencyShortname());
-        Transaction transaction = transactionService.processTransaction(request);
-        return ResponseEntity.ok(transaction);
+        return transactionService.processTransaction(request)
+                .thenApply(transaction -> {
+                    TransactionDTO dto = modelMapper.map(transaction, TransactionDTO.class);
+                    return ResponseEntity.ok(dto);
+                });
+
     }
 
 }
+

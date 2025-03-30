@@ -12,7 +12,7 @@ import java.util.concurrent.Executor;
 public class AsyncConfig {
 
     @Bean(name = "rubExecutor")
-    public Executor rubExecutor() {
+    public ThreadPoolTaskExecutor  rubExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2);
         executor.setMaxPoolSize(5);
@@ -23,7 +23,7 @@ public class AsyncConfig {
     }
 
     @Bean(name = "kztExecutor")
-    public Executor kztExecutor() {
+    public ThreadPoolTaskExecutor kztExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2);
         executor.setMaxPoolSize(5);

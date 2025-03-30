@@ -106,4 +106,8 @@ public class LimitService {
             }
         }
     }
+
+    public void deleteAllLimits(){
+        limitRepository.deleteAll();
+    }
 }

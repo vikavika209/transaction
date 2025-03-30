@@ -62,6 +62,7 @@ public class TransactionService {
 
         //Сохранение транзакции
         logger.info("Транзакция для аккаунта: {} на сумму: {} {} успешно сохранена.", transaction.getAccountFrom(), transaction.getSum(), transaction.getCurrencyShortname());
+
         return transactionRepository.save(transaction);
     }
 
@@ -77,21 +78,22 @@ public class TransactionService {
     }
 
     @Async("rubExecutor")
-    protected CompletableFuture<Transaction> saveRubTransaction(TransactionDTO transactionDTO) {
+    public CompletableFuture<Transaction> saveRubTransaction(TransactionDTO transactionDTO) {
         return CompletableFuture.completedFuture(save(transactionDTO));
     }
 
     @Async("kztExecutor")
-    protected CompletableFuture<Transaction> saveKztTransaction(TransactionDTO transactionDTO) {
+    public CompletableFuture<Transaction> saveKztTransaction(TransactionDTO transactionDTO) {
         return CompletableFuture.completedFuture(save(transactionDTO));
     }
 
-    public Transaction processTransaction(TransactionDTO transactionDTO) {
+    @Async
+    public CompletableFuture<Transaction> processTransaction(TransactionDTO transactionDTO) {
 
         if (transactionDTO.getCurrencyShortname().equalsIgnoreCase("RUB")){
-            return saveRubTransaction(transactionDTO).join();
+            return saveRubTransaction(transactionDTO);
         }else if (transactionDTO.getCurrencyShortname().equalsIgnoreCase("KZT")){
-            return saveKztTransaction(transactionDTO).join();
+            return saveKztTransaction(transactionDTO);
         }else {
             logger.error("Невалидная валюта транзакции с аккаунта: {}", transactionDTO.getAccountFrom());
             throw new RuntimeException("Невалидная валюта транзакции.");

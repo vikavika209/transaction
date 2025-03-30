@@ -24,6 +24,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -86,7 +88,7 @@ public class TransactionServiceTest {
         when(limitService.getLimitsByAccountNumberAndCategory("0123456789", "service")).thenReturn(limit);
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Transaction savedTransaction = transactionService.processTransaction(transactionOverLimitDto);
+        Transaction savedTransaction = transactionService.processTransaction(transactionOverLimitDto).join();
         Assertions.assertNotNull(savedTransaction);
         Assertions.assertTrue(savedTransaction.isLimitExceeded());
         Assertions.assertEquals("RUB", savedTransaction.getCurrencyShortname());
@@ -104,7 +106,7 @@ public class TransactionServiceTest {
         when(limitService.getLimitsByAccountNumberAndCategory("0123456789", "service")).thenReturn(limit);
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Transaction savedTransaction = transactionService.processTransaction(transactionUnderLimitDto);
+        Transaction savedTransaction = transactionService.processTransaction(transactionUnderLimitDto).join();
         Assertions.assertNotNull(savedTransaction);
         Assertions.assertFalse(savedTransaction.isLimitExceeded());
     }
@@ -119,7 +121,7 @@ public class TransactionServiceTest {
         when(limitService.getLimitsByAccountNumberAndCategory("0123456789", "service")).thenReturn(limit);
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Transaction transactionOverOldLimit = transactionService.processTransaction(transactionOverLimitDto);
+        Transaction transactionOverOldLimit = transactionService.processTransaction(transactionOverLimitDto).join();
         Assertions.assertTrue(transactionOverOldLimit.isLimitExceeded());
 
         Limit newLimit = new Limit("0123456789", "service", new BigDecimal("200.00"), "USD");
@@ -129,7 +131,7 @@ public class TransactionServiceTest {
 
         when(limitService.getLimitsByAccountNumberAndCategory("0123456789", "service")).thenReturn(newLimit);
 
-        Transaction transactionUnderNewLimit = transactionService.processTransaction(transactionOverLimitDto);
+        Transaction transactionUnderNewLimit = transactionService.processTransaction(transactionOverLimitDto).join();
         Assertions.assertTrue(transactionOverOldLimit.isLimitExceeded());
         Assertions.assertEquals("RUB", transactionOverOldLimit.getCurrencyShortname());
         Assertions.assertEquals(new BigDecimal("10000.00"), transactionOverOldLimit.getSum());
@@ -144,7 +146,7 @@ public class TransactionServiceTest {
         transactionOverNewLimitDTO.setSum(new BigDecimal("25000.00"));
         transactionOverNewLimitDTO.setExpenseCategory("service");
 
-        Transaction transactionOverNewLimit = transactionService.processTransaction(transactionOverNewLimitDTO);
+        Transaction transactionOverNewLimit = transactionService.processTransaction(transactionOverNewLimitDTO).join();
         Assertions.assertTrue(transactionOverNewLimit.isLimitExceeded());
     }
 }
