@@ -3,6 +3,7 @@ package com.example.transaction.service;
 import com.example.transaction.dto.LimitDTO;
 import com.example.transaction.entity.Limit;
 import com.example.transaction.repository.LimitRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +15,9 @@ import java.time.OffsetDateTime;
 import java.util.*;
 
 @Service
+@Slf4j
 public class LimitService {
 
-    private static final Logger logger = LoggerFactory.getLogger(LimitService.class);
     private final ModelMapper modelMapper;
     LimitRepository limitRepository;
     ExchangeRateService exchangeRateService;
@@ -30,7 +31,7 @@ public class LimitService {
 
     public Limit createLimit(LimitDTO limitDTO) {
 
-        logger.info("Метод createLimit начал работу");
+        log.info("Метод createLimit начал работу");
 
         //Получение лимитов из репозитория
         Optional <Limit> optionalLimit = limitRepository.findTopByAccountAndLimitCategoryOrderByLimitDatetimeDesc(limitDTO.getAccount(), limitDTO.getLimitCategory());
@@ -40,7 +41,7 @@ public class LimitService {
         //Получение или установка лимита
         getOrCreatLimitData(limit);
 
-        logger.info("Лимит для аккаунта: {} на категорию '{}' успешно установлен. Сумма лимита: {} {}.", limit.getAccount(), limit.getLimitCategory(), limit.getLimitSum(), limit.getLimitCurrencyShortName());
+        log.info("Лимит для аккаунта: {} на категорию '{}' успешно установлен. Сумма лимита: {} {}.", limit.getAccount(), limit.getLimitCategory(), limit.getLimitSum(), limit.getLimitCurrencyShortName());
         return limitRepository.save(limit);
     }
 
@@ -48,7 +49,7 @@ public class LimitService {
 
         Optional<Limit> optionalLimit = limitRepository.findTopByAccountAndLimitCategoryOrderByLimitDatetimeDesc(accountNumber, category);
         Limit limit = optionalLimit.orElse(null);
-        logger.info("Лимит в категории:{} для аккаунта {} получен.", category, accountNumber);
+        log.info("Лимит в категории:{} для аккаунта {} получен.", category, accountNumber);
         return limit;
     }
 
@@ -69,7 +70,7 @@ public class LimitService {
         limitMap.put("product", productLimit);
         limitMap.put("service", serviceLimit);
 
-        logger.info("Лимиты для аккаунта {} получены.", accountNumber);
+        log.info("Лимиты для аккаунта {} получены.", accountNumber);
         return limitMap;
     }
 
@@ -77,20 +78,20 @@ public class LimitService {
 
         //Установка лимита по умолчанию
         if (limit.getLimitCurrencyShortName() == null){
-            logger.info("Валюта не передана.");
+            log.info("Валюта не передана.");
             limit.setLimitSum(new BigDecimal("1000.00"));
             limit.setLimitCurrencyShortName("USD");
 
         }else {
             //Конвертация суммы лимита в USD
             if (limit.getLimitCurrencyShortName().equalsIgnoreCase("RUB") || limit.getLimitCurrencyShortName().equalsIgnoreCase("KZT")) {
-                logger.info("Валюта передана: {}.", limit.getLimitCurrencyShortName());
+                log.info("Валюта передана: {}.", limit.getLimitCurrencyShortName());
 
                 BigDecimal limitSum = limit.getLimitSum();
                 String limitCurrency = limit.getLimitCurrencyShortName();
                 BigDecimal limitSumInUsd = exchangeRateService.convertCurrentCurrencyInUsd(limitSum, limitCurrency);
-                logger.info("Сумма лимита в {}: {}.", limitCurrency, limitSum);
-                logger.info("Сумма лимита в USD: {}.", limitSumInUsd);
+                log.info("Сумма лимита в {}: {}.", limitCurrency, limitSum);
+                log.info("Сумма лимита в USD: {}.", limitSumInUsd);
 
                 limit.setLimitSum(limitSumInUsd);
                 limit.setLimitCurrencyShortName("USD");
@@ -101,7 +102,7 @@ public class LimitService {
                 limit.setLimitSum(limit.getLimitSum());
 
             } else {
-                logger.error("Неизвестная валюта: {}", limit.getLimitCurrencyShortName());
+                log.error("Неизвестная валюта: {}", limit.getLimitCurrencyShortName());
                 throw new RuntimeException("Неизвестная валюта");
             }
         }

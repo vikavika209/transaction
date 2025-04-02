@@ -47,10 +47,7 @@ public class Transaction {
     private boolean limitExceeded;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @JoinColumns({
-            @JoinColumn(name = "account_from", referencedColumnName = "account"),
-            @JoinColumn(name = "expense_category", referencedColumnName = "limit_category")
-    })
+    @JoinColumn(name = "limit_id", nullable = false)
     @JsonBackReference
     private Limit limit;
 

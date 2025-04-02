@@ -6,6 +6,7 @@ import com.example.transaction.dto.TransactionLimitDTO;
 import com.example.transaction.entity.Limit;
 import com.example.transaction.entity.Transaction;
 import com.example.transaction.repository.TransactionRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +22,9 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
+@Slf4j
 public class TransactionService {
 
-    private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
     private final ModelMapper modelMapper;
     TransactionRepository transactionRepository;
     ExchangeRateService exchangeRateService;
@@ -53,15 +54,15 @@ public class TransactionService {
         Limit limit = findOrCreateLimitForAccountByCategory(accountFrom, transactionCategory);
         transaction.setLimit(limit);
         BigDecimal limitOfThisAccount = limit.getLimitSum();
-        logger.info("Лимит для аккаунта: {} равен {} {}.", accountFrom, limitOfThisAccount, limit.getLimitCurrencyShortName());
+        log.info("Лимит для аккаунта: {} равен {} {}.", accountFrom, limitOfThisAccount, limit.getLimitCurrencyShortName());
 
         //Установка флага превышения лимита
         transaction.setLimitExceeded(transactionSumInUsd.compareTo(limitOfThisAccount) > 0);
-        logger.info("transactionSumInUsd = {}; limitOfThisAccount = {}", transactionSumInUsd, limitOfThisAccount);
-        logger.info("transaction.isLimitExceeded() {}", transaction.isLimitExceeded());
+        log.info("transactionSumInUsd = {}; limitOfThisAccount = {}", transactionSumInUsd, limitOfThisAccount);
+        log.info("transaction.isLimitExceeded() {}", transaction.isLimitExceeded());
 
         //Сохранение транзакции
-        logger.info("Транзакция для аккаунта: {} на сумму: {} {} успешно сохранена.", transaction.getAccountFrom(), transaction.getSum(), transaction.getCurrencyShortname());
+        log.info("Транзакция для аккаунта: {} на сумму: {} {} успешно сохранена.", transaction.getAccountFrom(), transaction.getSum(), transaction.getCurrencyShortname());
 
         return transactionRepository.save(transaction);
     }
@@ -69,7 +70,7 @@ public class TransactionService {
     public List<TransactionLimitDTO> getTransactionsOverTheLimit(String accountNumber) {
 
         if (accountNumber == null || accountNumber.isBlank()) {
-            logger.error("Не указан номер аккаунта");
+            log.error("Не указан номер аккаунта");
             throw new IllegalArgumentException("Не указан номер аккаунта");
         }
 
@@ -95,7 +96,7 @@ public class TransactionService {
         }else if (transactionDTO.getCurrencyShortname().equalsIgnoreCase("KZT")){
             return saveKztTransaction(transactionDTO);
         }else {
-            logger.error("Невалидная валюта транзакции с аккаунта: {}", transactionDTO.getAccountFrom());
+            log.error("Невалидная валюта транзакции с аккаунта: {}", transactionDTO.getAccountFrom());
             throw new RuntimeException("Невалидная валюта транзакции.");
         }
     }
@@ -105,7 +106,7 @@ public class TransactionService {
 
         if (limit == null) {
             limit = limitService.createLimit(new LimitDTO(account, category));
-            logger.info("Создан лимит: {} для аккаунта: {} в категории {}", limit.getLimitSum(), account, category);
+            log.info("Создан лимит: {} для аккаунта: {} в категории {}", limit.getLimitSum(), account, category);
         }
 
         return limit;
@@ -113,7 +114,7 @@ public class TransactionService {
 
     private BigDecimal convertTransactionSumInUsd(Transaction transaction) {
         if (transaction.getCurrencyShortname() == null) {
-            logger.error("Не указана валюта транзакции с id: {}", transaction.getId());
+            log.error("Не указана валюта транзакции с id: {}", transaction.getId());
             throw new NoSuchElementException("Не указана валюта транзакции с id: " + transaction.getId());
         }
 

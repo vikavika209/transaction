@@ -3,6 +3,7 @@ package com.example.transaction.service;
 import com.example.transaction.component.ExchangeRateApiClient;
 import com.example.transaction.entity.ExchangeRate;
 import com.example.transaction.repository.ExchangeRateRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,9 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@Slf4j
 class ExchangeRateServiceTest {
-
-    Logger logger = LoggerFactory.getLogger(ExchangeRateServiceTest.class);
 
     ExchangeRate exchangeRateForKzt;
     ExchangeRate exchangeRateForRub;
@@ -57,8 +56,8 @@ class ExchangeRateServiceTest {
         when(exchangeRateApiClient.getExchangeRate("KZT")).thenReturn(exchangeRateForKzt.getRate());
         when(exchangeRateApiClient.getExchangeRate("RUB")).thenReturn(exchangeRateForRub.getRate());
 
-        logger.info("Курс для KZT: {}", exchangeRateApiClient.getExchangeRate("KZT"));
-        logger.info("Курс для RUB: {}", exchangeRateApiClient.getExchangeRate("RUB"));
+        log.info("Курс для KZT: {}", exchangeRateApiClient.getExchangeRate("KZT"));
+        log.info("Курс для RUB: {}", exchangeRateApiClient.getExchangeRate("RUB"));
 
         exchangeRateService.updateExchangeRates();
 

@@ -26,7 +26,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LimitServiceTest {
-    private static final Logger logger = LoggerFactory.getLogger(LimitServiceTest.class);
 
     BigDecimal limitSumInRub;
     BigDecimal limitSumInUsd;

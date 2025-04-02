@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +23,8 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/transactions")
+@Slf4j
 public class InternalController {
-
-    Logger logger = LoggerFactory.getLogger(InternalController.class);
 
     private final ModelMapper modelMapper;
     private final TransactionService transactionService;
@@ -47,7 +47,7 @@ public class InternalController {
     })
     @PostMapping
     public CompletableFuture<ResponseEntity<TransactionDTO>> saveTransaction(@RequestBody TransactionDTO request) {
-        logger.info("Получен запрос: accountFrom={}, currencyShortname={}", request.getAccountFrom(), request.getCurrencyShortname());
+        log.info("Получен запрос: accountFrom={}, currencyShortname={}", request.getAccountFrom(), request.getCurrencyShortname());
         return transactionService.processTransaction(request)
                 .thenApply(transaction -> {
                     TransactionDTO dto = modelMapper.map(transaction, TransactionDTO.class);
